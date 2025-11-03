@@ -1,12 +1,16 @@
-import React from 'react';
+import React from "react";
 
 const ProductItem = ({ product, onEdit, onDelete }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-xl font-semibold text-gray-800">{product.name}</h3>
-          <p className="text-lg font-bold text-blue-600 mt-1">${product.price}</p>
+          <h3 className="text-xl font-semibold text-gray-800">
+            {product.name}
+          </h3>
+          <p className="text-lg font-bold text-blue-600 mt-1">
+            ${product.price}
+          </p>
         </div>
         <div className="flex gap-2">
           <button
@@ -28,13 +32,11 @@ const ProductItem = ({ product, onEdit, onDelete }) => {
       )}
       {product.category && (
         <p className="text-sm text-gray-500 mb-2">
-          Category: <span className="font-semibold">{product.category.name}</span>
+          Category:{" "}
+          <span className="font-semibold">{product.category.name}</span>
         </p>
       )}
       <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-400">
-          Stock: <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>{product.stock || 0}</span>
-        </p>
         {product.createdAt && (
           <p className="text-sm text-gray-400">
             {new Date(product.createdAt).toLocaleDateString()}
@@ -46,4 +48,3 @@ const ProductItem = ({ product, onEdit, onDelete }) => {
 };
 
 export default ProductItem;
-

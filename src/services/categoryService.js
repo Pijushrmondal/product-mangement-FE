@@ -41,7 +41,7 @@ export const categoryService = {
   },
 
   getCount: async () => {
-    const response = await api.get('/categories/count/total');
+    const response = await api.get('/categories/dashboardSummery');
     return response.data;
   }
 };

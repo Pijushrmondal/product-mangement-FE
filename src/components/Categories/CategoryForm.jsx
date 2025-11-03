@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const CategoryForm = ({ category, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    description: ''
+    name: "",
   });
 
   useEffect(() => {
     if (category) {
       setFormData({
-        name: category.name || '',
-        description: category.description || ''
+        name: category.name || "",
       });
     }
   }, [category]);
@@ -18,7 +16,7 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -30,10 +28,12 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold mb-4">
-        {category ? 'Edit Category' : 'Create Category'}
+        {category ? "Edit Category" : "Create Category"}
       </h2>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">Name</label>
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          Name
+        </label>
         <input
           type="text"
           name="name"
@@ -43,22 +43,13 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
           required
         />
       </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">Description</label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows="4"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+
       <div className="flex gap-4">
         <button
           type="submit"
           className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600"
         >
-          {category ? 'Update' : 'Create'}
+          {category ? "Update" : "Create"}
         </button>
         {onCancel && (
           <button
@@ -75,4 +66,3 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
 };
 
 export default CategoryForm;
-
