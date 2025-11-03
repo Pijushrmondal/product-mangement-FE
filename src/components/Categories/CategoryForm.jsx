@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 
 const CategoryForm = ({ category, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: "",
+    name: ''
   });
 
   useEffect(() => {
     if (category) {
       setFormData({
-        name: category.name || "",
+        name: category.name || ''
       });
     }
   }, [category]);
@@ -16,7 +16,7 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     });
   };
 
@@ -26,36 +26,45 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold mb-4">
-        {category ? "Edit Category" : "Create Category"}
-      </h2>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
-          Name
-        </label>
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
+    <form onSubmit={handleSubmit} className="card">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+          {category ? '✏️' : '➕'}
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {category ? 'Edit Category' : 'Create New Category'}
+        </h2>
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Category Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="input-field"
+            placeholder="Enter category name"
+            required
+          />
+        </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
         <button
           type="submit"
-          className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600"
+          className="btn-primary flex-1"
         >
-          {category ? "Update" : "Create"}
+          {category ? 'Update Category' : 'Create Category'}
         </button>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-400"
+            className="btn-secondary"
           >
             Cancel
           </button>

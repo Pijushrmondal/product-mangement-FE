@@ -5,6 +5,7 @@ import ProductList from '../components/Products/ProductList';
 import ProductForm from '../components/Products/ProductForm';
 import SearchBar from '../components/common/SearchBar';
 import Pagination from '../components/common/Pagination';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
 
@@ -121,25 +122,32 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Products</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Products</h1>
+            <p className="text-gray-600">Manage your product inventory</p>
+          </div>
           <button
             onClick={handleCreate}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            className="btn-primary flex items-center gap-2"
           >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             Create Product
           </button>
         </div>
-        <div className="mb-4 space-y-4">
+        
+        <div className="mb-6 space-y-4">
           <SearchBar onSearch={handleSearch} placeholder="Search products..." />
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <select
               value={selectedCategory}
               onChange={(e) => handleCategoryFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field flex-1 min-w-[200px]"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -151,7 +159,7 @@ const ProductsPage = () => {
             <select
               value={sortByPrice}
               onChange={(e) => handleSort(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field flex-1 min-w-[200px]"
             >
               <option value="">Sort by Price</option>
               <option value="ASC">Price: Low to High</option>
@@ -159,8 +167,9 @@ const ProductsPage = () => {
             </select>
           </div>
         </div>
+        
         {showForm && (
-          <div className="mb-6">
+          <div className="mb-8">
             <ProductForm
               product={editingProduct}
               categories={categories}
@@ -172,9 +181,23 @@ const ProductsPage = () => {
             />
           </div>
         )}
+        
         {loading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Loading...</p>
+          <div className="flex justify-center items-center py-20">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="card text-center py-12">
+            <div className="text-6xl mb-4">📦</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-600 mb-4">
+              {searchQuery || selectedCategory ? 'Try adjusting your filters' : 'Get started by creating your first product'}
+            </p>
+            {!searchQuery && !selectedCategory && (
+              <button onClick={handleCreate} className="btn-primary">
+                Create Product
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -184,11 +207,13 @@ const ProductsPage = () => {
               onDelete={handleDelete}
             />
             {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
             )}
           </>
         )}
