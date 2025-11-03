@@ -3,21 +3,23 @@ import React, { useState, useEffect } from 'react';
 const ProductForm = ({ product, categories = [], onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
     price: '',
-    stock: '',
-    categoryId: ''
+    categoryId: '',
+    image: null
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
 
   useEffect(() => {
     if (product) {
       setFormData({
         name: product.name || '',
-        description: product.description || '',
         price: product.price || '',
-        stock: product.stock || '',
         categoryId: product.categoryId || product.category?.id || ''
       });
+      if (product.image) {
+        setImagePreview(product.image);
+      }
     }
   }, [product]);
 
@@ -29,9 +31,35 @@ const ProductForm = ({ product, categories = [], onSubmit, onCancel }) => {
     });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // If image is provided, use formData for upload endpoint
+    if (imageFile || (product && imageFile)) {
+      const uploadFormData = new FormData();
+      uploadFormData.append('name', formData.name);
+      uploadFormData.append('price', formData.price);
+      uploadFormData.append('categoryId', formData.categoryId);
+      if (imageFile) {
+        uploadFormData.append('image', imageFile);
+      }
+      onSubmit(uploadFormData, true);
+    } else {
+      // No image, use regular JSON endpoint
+      onSubmit(formData, false);
+    }
   };
 
   return (
@@ -51,41 +79,17 @@ const ProductForm = ({ product, categories = [], onSubmit, onCancel }) => {
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">Description</label>
-        <textarea
-          name="description"
-          value={formData.description}
+        <label className="block text-gray-700 text-sm font-bold mb-2">Price</label>
+        <input
+          type="number"
+          name="price"
+          value={formData.price}
           onChange={handleChange}
-          rows="4"
+          step="0.01"
+          min="0"
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
         />
-      </div>
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">Price</label>
-          <input
-            type="number"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            step="0.01"
-            min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">Stock</label>
-          <input
-            type="number"
-            name="stock"
-            value={formData.stock}
-            onChange={handleChange}
-            min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">Category</label>
@@ -103,6 +107,25 @@ const ProductForm = ({ product, categories = [], onSubmit, onCancel }) => {
             </option>
           ))}
         </select>
+      </div>
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2">Image</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {imagePreview && (
+          <div className="mt-2">
+            <img src={imagePreview} alt="Preview" className="h-32 w-32 object-cover rounded" />
+          </div>
+        )}
+        {product?.image && !imagePreview && (
+          <div className="mt-2">
+            <img src={product.image} alt="Current" className="h-32 w-32 object-cover rounded" />
+          </div>
+        )}
       </div>
       <div className="flex gap-4">
         <button
@@ -126,4 +149,3 @@ const ProductForm = ({ product, categories = [], onSubmit, onCancel }) => {
 };
 
 export default ProductForm;
-

@@ -11,25 +11,39 @@ import { categoryService } from '../services/categoryService';
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [sortByPrice, setSortByPrice] = useState('');
+  const limit = 10;
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, []);
+  }, [currentPage, searchQuery, selectedCategory, sortByPrice]);
 
   const fetchProducts = async () => {
     try {
-      const data = await productService.getAll();
-      setProducts(data);
-      setFilteredProducts(data);
+      setLoading(true);
+      const params = {
+        page: currentPage,
+        limit,
+        ...(searchQuery && { search: searchQuery }),
+        ...(selectedCategory && { categoryId: selectedCategory }),
+        ...(sortByPrice && { sortByPrice })
+      };
+
+      const response = await productService.getAll(params);
+      const data = response.data || response;
+      setProducts(Array.isArray(data) ? data : []);
+      setTotalPages(response.totalPages || response.total ? Math.ceil(response.total / limit) : 1);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -37,7 +51,8 @@ const ProductsPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const data = await categoryService.getAll();
+      const response = await categoryService.getAllList();
+      const data = Array.isArray(response) ? response : (response.data || []);
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -45,10 +60,17 @@ const ProductsPage = () => {
   };
 
   const handleSearch = (searchTerm) => {
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(filtered);
+    setSearchQuery(searchTerm);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryFilter = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (order) => {
+    setSortByPrice(order || '');
     setCurrentPage(1);
   };
 
@@ -69,29 +91,34 @@ const ProductsPage = () => {
         fetchProducts();
       } catch (error) {
         console.error('Error deleting product:', error);
+        alert(error.response?.data?.message || 'Failed to delete product');
       }
     }
   };
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (formData, isFormData = false) => {
     try {
       if (editingProduct) {
-        await productService.update(editingProduct.id, formData);
+        if (isFormData) {
+          await productService.updateWithImage(editingProduct.id, formData);
+        } else {
+          await productService.update(editingProduct.id, formData);
+        }
       } else {
-        await productService.create(formData);
+        if (isFormData) {
+          await productService.createWithImage(formData);
+        } else {
+          await productService.create(formData);
+        }
       }
       setShowForm(false);
       setEditingProduct(null);
       fetchProducts();
     } catch (error) {
       console.error('Error saving product:', error);
+      alert(error.response?.data?.message || 'Failed to save product');
     }
   };
-
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -106,8 +133,31 @@ const ProductsPage = () => {
             Create Product
           </button>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 space-y-4">
           <SearchBar onSearch={handleSearch} placeholder="Search products..." />
+          <div className="flex gap-4">
+            <select
+              value={selectedCategory}
+              onChange={(e) => handleCategoryFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortByPrice}
+              onChange={(e) => handleSort(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Sort by Price</option>
+              <option value="ASC">Price: Low to High</option>
+              <option value="DESC">Price: High to Low</option>
+            </select>
+          </div>
         </div>
         {showForm && (
           <div className="mb-6">
@@ -123,19 +173,23 @@ const ProductsPage = () => {
           </div>
         )}
         {loading ? (
-          <p>Loading...</p>
+          <div className="text-center py-8">
+            <p className="text-gray-500">Loading...</p>
+          </div>
         ) : (
           <>
             <ProductList
-              products={paginatedProducts}
+              products={products}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(filteredProducts.length / itemsPerPage)}
-              onPageChange={setCurrentPage}
-            />
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </>
         )}
       </main>
@@ -145,4 +199,3 @@ const ProductsPage = () => {
 };
 
 export default ProductsPage;
-

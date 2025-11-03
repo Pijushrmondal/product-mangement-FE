@@ -8,11 +8,19 @@ const BulkUploadForm = ({ onUpload }) => {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
+      const isValidFile = 
+        selectedFile.type === 'text/csv' || 
+        selectedFile.name.endsWith('.csv') ||
+        selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        selectedFile.name.endsWith('.xlsx') ||
+        selectedFile.type === 'application/vnd.ms-excel' ||
+        selectedFile.name.endsWith('.xls');
+      
+      if (isValidFile) {
         setFile(selectedFile);
         setError('');
       } else {
-        setError('Please upload a CSV file');
+        setError('Please upload a CSV or XLSX file');
         setFile(null);
       }
     }
@@ -54,13 +62,13 @@ const BulkUploadForm = ({ onUpload }) => {
           </label>
           <input
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls"
             onChange={handleFileChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
           <p className="text-sm text-gray-500 mt-2">
-            Please upload a CSV file with columns: name, description, price, stock, categoryId
+            Please upload a CSV or XLSX file with columns: name, price, categoryId, image (optional)
           </p>
         </div>
         <button

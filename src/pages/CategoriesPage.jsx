@@ -9,34 +9,42 @@ import { categoryService } from '../services/categoryService';
 
 const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
-  const [filteredCategories, setFilteredCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingCategory, setEditingCategory] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const limit = 10;
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [currentPage, searchQuery]);
 
   const fetchCategories = async () => {
     try {
-      const data = await categoryService.getAll();
-      setCategories(data);
-      setFilteredCategories(data);
+      setLoading(true);
+      let data;
+      if (searchQuery.trim()) {
+        const response = await categoryService.search(searchQuery, currentPage, limit);
+        data = response.data || response;
+        setTotalPages(response.totalPages || response.total ? Math.ceil(response.total / limit) : 1);
+      } else {
+        const response = await categoryService.getAll(currentPage, limit);
+        data = response.data || response;
+        setTotalPages(response.totalPages || response.total ? Math.ceil(response.total / limit) : 1);
+      }
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSearch = (searchTerm) => {
-    const filtered = categories.filter((cat) =>
-      cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredCategories(filtered);
+    setSearchQuery(searchTerm);
     setCurrentPage(1);
   };
 
@@ -57,6 +65,7 @@ const CategoriesPage = () => {
         fetchCategories();
       } catch (error) {
         console.error('Error deleting category:', error);
+        alert(error.response?.data?.message || 'Failed to delete category');
       }
     }
   };
@@ -73,13 +82,9 @@ const CategoriesPage = () => {
       fetchCategories();
     } catch (error) {
       console.error('Error saving category:', error);
+      alert(error.response?.data?.message || 'Failed to save category');
     }
   };
-
-  const paginatedCategories = filteredCategories.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -110,19 +115,23 @@ const CategoriesPage = () => {
           </div>
         )}
         {loading ? (
-          <p>Loading...</p>
+          <div className="text-center py-8">
+            <p className="text-gray-500">Loading...</p>
+          </div>
         ) : (
           <>
             <CategoryList
-              categories={paginatedCategories}
+              categories={categories}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(filteredCategories.length / itemsPerPage)}
-              onPageChange={setCurrentPage}
-            />
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </>
         )}
       </main>
@@ -132,4 +141,3 @@ const CategoriesPage = () => {
 };
 
 export default CategoriesPage;
-
