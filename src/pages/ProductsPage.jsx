@@ -8,6 +8,7 @@ import Pagination from '../components/common/Pagination';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -20,6 +21,7 @@ const ProductsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortByPrice, setSortByPrice] = useState('');
+  const [viewMode, setViewMode] = useLocalStorage('productViewMode', 'grid');
   const limit = 10;
 
   useEffect(() => {
@@ -39,12 +41,22 @@ const ProductsPage = () => {
       };
 
       const response = await productService.getAll(params);
-      const data = response.data || response;
-      setProducts(Array.isArray(data) ? data : []);
-      setTotalPages(response.totalPages || response.total ? Math.ceil(response.total / limit) : 1);
+      // Extract products from response.data
+      const productsData = response.data || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      
+      // Extract pagination info from response.meta
+      if (response.meta) {
+        setTotalPages(response.meta.totalPages || 1);
+      } else {
+        // Fallback to calculated totalPages if meta is not available
+        const total = response.total || response.meta?.total || 0;
+        setTotalPages(total > 0 ? Math.ceil(total / limit) : 1);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -143,7 +155,7 @@ const ProductsPage = () => {
         
         <div className="mb-6 space-y-4">
           <SearchBar onSearch={handleSearch} placeholder="Search products..." />
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 items-center">
             <select
               value={selectedCategory}
               onChange={(e) => handleCategoryFilter(e.target.value)}
@@ -165,6 +177,34 @@ const ProductsPage = () => {
               <option value="ASC">Price: Low to High</option>
               <option value="DESC">Price: High to Low</option>
             </select>
+            <div className="flex gap-2 border border-gray-300 rounded-lg p-1 bg-white">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                title="Grid view"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                title="List view"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         
@@ -205,6 +245,7 @@ const ProductsPage = () => {
               products={products}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              viewMode={viewMode}
             />
             {totalPages > 1 && (
               <div className="mt-8">

@@ -1,11 +1,27 @@
-import React from 'react';
-import ProductItem from './ProductItem';
+import React from "react";
+import ProductItem from "./ProductItem";
 
-const ProductList = ({ products, onEdit, onDelete }) => {
+const ProductList = ({ products, onEdit, onDelete, viewMode = 'grid' }) => {
   if (!products || products.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <p>No products found</p>
+      </div>
+    );
+  }
+
+  if (viewMode === 'list') {
+    return (
+      <div className="space-y-3">
+        {products.map((product) => (
+          <ProductItem
+            key={product.id}
+            product={product}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            viewMode="list"
+          />
+        ))}
       </div>
     );
   }
@@ -18,6 +34,7 @@ const ProductList = ({ products, onEdit, onDelete }) => {
           product={product}
           onEdit={onEdit}
           onDelete={onDelete}
+          viewMode="grid"
         />
       ))}
     </div>
@@ -25,4 +42,3 @@ const ProductList = ({ products, onEdit, onDelete }) => {
 };
 
 export default ProductList;
-

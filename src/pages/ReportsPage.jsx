@@ -60,7 +60,7 @@ const ReportsPage = () => {
   const pollJobStatus = async (jobId) => {
     try {
       const status = await reportService.getJobStatus(jobId);
-      setCurrentJob(status);
+      setCurrentJob({ ...status, jobId: jobId });
       
       if (status.status === 'completed' || status.status === 'failed') {
         setGenerating(false);
